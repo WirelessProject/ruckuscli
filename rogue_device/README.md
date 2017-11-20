@@ -6,6 +6,9 @@
 ./rogue_device
 ```
 
+2. Run the scan every day and send email if detected. [hard]
+
+
 ## Reference
 ### Code
 * `../reference/collect.py`
