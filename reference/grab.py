@@ -1,4 +1,7 @@
+#!/usr/bin/env python
+
 import datetime
+import getpass
 import pexpect
 from peewee import *
 
@@ -21,7 +24,7 @@ def main():
     p = pexpect.spawn('ssh wifi.csie.ntu.edu.tw')
     p.expect('Please login:')
     p.sendline(input('Please login: '))  # Usename
-    p.sendline(input('Password: '))  # Password
+    p.sendline(getpass.getpass('Password: '))  # Password
     p.expect('ruckus>')
     p.sendline('enable')    # Enable mode
     idx = p.expect(['ruckus#', 'A privileged user is already logged in.'])
