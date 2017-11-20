@@ -11,6 +11,6 @@
 * `../reference/collect.py`
 
 ### ZD CLI Command
-* `show current-connected-client`
+* `show current-active-clients`
 
 
