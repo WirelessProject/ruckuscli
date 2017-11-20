@@ -23,7 +23,7 @@ class ActivityModel(Model):
 def main():
     p = pexpect.spawn('ssh wifi.csie.ntu.edu.tw')
     p.expect('Please login:')
-    p.sendline(input('Please login: '))  # Usename
+    p.sendline(raw_input('Please login: '))  # Usename
     p.sendline(getpass.getpass('Password: '))  # Password
     p.expect('ruckus>')
     p.sendline('enable')    # Enable mode
