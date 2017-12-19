@@ -7,7 +7,7 @@ import re
 import sys
 
 
-wlan_list = ['csie', 'csie-5G']	# the wlan to scan
+wlan_list = ['csie', 'csie-5G']	# the wlans to scan through
 
 def main():
 	p = pexpect.spawn('ssh wifi.csie.ntu.edu.tw')
@@ -98,7 +98,7 @@ def main():
 
 	print()
 	if location:
-		print("The person might in the following location(s):", "-"*50, *(data), "-"*50, sep='\n')
+		print("The person might be in the following location(s):", "-"*50, *(data), "-"*50, sep='\n')
 	else:
 		print("Not found, the person you are looking for is not connecting", '/'.join(wlan_list), '.')
 
