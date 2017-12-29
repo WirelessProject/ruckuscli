@@ -4,11 +4,20 @@ import pexpect
 import getpass
 import re
 import smtplib
+import time
+from time import localtime, strftime
 
 username = ''
 password = ''
 fromaddr = ''
 toaddrs = ''
+
+rogue_device_detected = 0
+_time = 0
+
+log_in_account = ''
+log_in_password = ''  # Password
+    
 
 def mailing(device):
 	server = smtplib.SMTP('smtp.gmail.com:587')
@@ -32,20 +41,31 @@ def mailing(device):
 
 def main():
     p = pexpect.spawn('ssh wifi.csie.ntu.edu.tw')
+    
+    print(strftime("%Y-%m-%d %H:%M:%S", localtime()), 'Login to ZD')
+    
     p.expect('Please login:')
-    p.sendline(raw_input('Please login: '))  # Usename
-    p.sendline(getpass.getpass('Password: '))  # Password
+    p.sendline(log_in_account)  # Usename
+    p.sendline(log_in_password)  # Password
+    
+    print(strftime("%Y-%m-%d %H:%M:%S", localtime()), 'Login succeeded')
+    
     p.expect('ruckus>')
     p.sendline('enable')    # Enable mode
+    
     idx = p.expect(['ruckus#', 'A privileged user is already logged in.'])
     if idx != 0:    # Someone already in.
         print(datetime.datetime.now().isoformat(),
-            'A privileged user is already logged in.')
+            'A privileged user is already logged in, try in the next cycle.')
+        p.sendline('exit')
+        p.close()
         return
     p.sendline('show wlan-group all')
     p.expect('ruckus#')
+    
     data = p.before
     data = data.split('WLAN Service:')[1:]
+    
     # get valid SSIDs
     valid_SSID = []
     for i in (data):
@@ -54,16 +74,18 @@ def main():
             continue
         valid_SSID.append(tmp)
     
+    # this line is for testing
     # valid_SSID.append('NTU')
 
     p.sendline('show rogue-devices')
     p.expect('Current Active Rogue Devices:\r\r\n')
     p.expect('ruckus#')
+    
     data = p.before
     entries = re.split('Rogue Devices:\r\r\n', data.decode('utf-8'))[1:]
     rogue_devices = []
     for entry in entries:
-            #empty line
+        #check for empty line
         if len(re.findall('Mac Address= (\S+)\r\r\n', entry)) == 0:
             continue
         Mac = re.findall('Mac Address= (\S+)\r\r\n', entry)[0]
@@ -72,6 +94,7 @@ def main():
         Type = re.findall('Type= (\S+)\r\r\n',entry)[0]
         Encryption = re.findall('Encryption= (\S+)\r\r\n',entry)[0]
      	#check for empty SSID
+        ###assume SSID is at most two segments seperated by spaces!!!!!
         if len(re.findall('SSID= (\S+)\r\r\n',entry)) != 0:
             if len(re.findall('SSID= (\S+ \S+)\r\r\n',entry)) == 0:
                 SSID = re.findall('SSID= (\S+)\r\r\n',entry)[0]
@@ -89,20 +112,45 @@ def main():
                 'SSID' : SSID,
                 'Last_Detected' : Last_Detected,
         	})
+    
     for device in rogue_devices:
-        print(device['SSID'])
-        # if device['SSID'] == 'csie' or device['SSID'] == 'csie-5G':
         if device['SSID'] in valid_SSID :
-            mailing(device)
-        print(device['SSID'])
-
+            rogue_device_detected = 1
+            print(strftime("%Y-%m-%d %H:%M:%S", localtime()), 'Rogue device detected, mailing')
+            try:
+                mailing(device)
+            except smtplib.SMTPException:
+                print(strftime("%Y-%m-%d %H:%M:%S", localtime()), 'Mailing failed !!!!!!')
+    
     p.sendline('exit')
     p.close()
+    print(strftime("%Y-%m-%d %H:%M:%S", localtime()), 'Logout from ZD')
 
 
 if __name__ == '__main__':
+    
+    _time = int(raw_input('Please Enter the interval(minute) between cycles: '))
+
     server = smtplib.SMTP('smtp.gmail.com:587')
     server.starttls()
+
+    #get zd account
+    while True:
+        try:
+            log_in_account = raw_input('Please login: ')     # username
+            log_in_password = getpass.getpass('Password: ')  # Password
+            p = pexpect.spawn('ssh wifi.csie.ntu.edu.tw')
+            p.expect('Please login:')
+            p.sendline(log_in_account)  # Usename
+            p.sendline(log_in_password)  # Password
+            p.expect('ruckus>',timeout = 1)
+            p.sendline('exit')
+            p.close() 
+            break
+        except pexpect.TIMEOUT:
+            print("your username or password is incorrect, please try again") 
+    
+    #get user gmail account,zd account
     while True:
         try:
             username = raw_input('Please Enter your Gmail Account: ')
@@ -112,12 +160,23 @@ if __name__ == '__main__':
         except smtplib.SMTPException:
             print("your username or password is incorrect, please try again") 
             continue
-    fromaddr = username + '@gmail.com';
+    fromaddr = 'zone director';
     toaddrs = raw_input('Please Enter your Gmail toaddr: ')
-    print(datetime.datetime.now().isoformat(), 'Start')
-    try:
-        main()
-    except pexpect.TIMEOUT:
-        print('Timeout.')
+    print(strftime("%Y-%m-%d %H:%M:%S", localtime()), 'Start')
+    
+    #start scanning for rogue devices
+    while True:
+        try:
+            print(strftime("%Y-%m-%d %H:%M:%S", localtime()), 'Start scanning for rogue devices')
+            rogue_device_detected = 0
+            main()
+        except pexpect.TIMEOUT:
+            print(strftime("%Y-%m-%d %H:%M:%S", localtime()),'Timeout.')
+        time.sleep(60*_time)
+        if  rogue_device_detected == 0:
+            print(strftime("%Y-%m-%d %H:%M:%S", localtime()),'Finish scanning, no rogue device detected')
+        else:
+            print(strftime("%Y-%m-%d %H:%M:%S", localtime()),'Finish scanning, some rogue devices detected!!!')
+    
     server.quit()
     print(datetime.datetime.now().isoformat(), 'End')
