@@ -6,6 +6,13 @@ import getpass
 import re
 import sys
 
+def sort_ap(elem):
+    if elem['clients'] == 0:
+        return 1000
+    else:
+        return round(float(elem['total_signal']) / elem['clients'], 2)
+def sort_user(elem):
+    return elem['Signal']    
 
 def main():
     p = pexpect.spawn('ssh wifi.csie.ntu.edu.tw')
@@ -113,24 +120,21 @@ def main():
                         break
                 break
 
-
-    for ap in aps:
-            if ap['clients'] == 0:
-                print({
-                    'average signal': 'no client',
-                    'ap name': ap['name'],
-                    'ap mac' : ap['mac']
-                })
+#sorting    
+    for sort in sorted(aps, key=sort_ap):
+            if sort['clients'] == 0:
+                print("\tap name: ", sort['name'])
+                print("\tap mac: ", sort['mac'])
+                print("\taverage signal: no client")
                 print()
             else:
-                print(
-                    {
-                    'average signal': round(float(ap['total_signal']) / ap['clients'], 2),
-                    'ap name': ap['name']
-                })
-                for print_user in ap['user_info']:
-                    print(print_user)
-                print()
+                print("\tap name: ", sort['name'])
+                print("\tap mac: ", sort['mac'])
+                print("\taverage signal: ",  round(float(sort['total_signal']) / sort['clients'], 2))
+                for print_user in sorted(sort['user_info'], key=sort_user):
+                    for keys in print_user:
+                        print("\t\t", keys, ":", print_user[keys])
+                    print()
 
     p.sendline('exit')
     p.close()
