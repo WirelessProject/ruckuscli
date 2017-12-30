@@ -6,7 +6,7 @@ import re
 import smtplib
 import time
 from time import localtime, strftime
-
+from termcolor import colored
 username = ''
 password = ''
 fromaddr = ''
@@ -52,10 +52,9 @@ def main():
     
     p.expect('ruckus>')
     p.sendline('enable')    # Enable mode
-    
     idx = p.expect(['ruckus#', 'A privileged user is already logged in.'])
     if idx != 0:    # Someone already in.
-        print(datetime.datetime.now().isoformat(),
+        print(strftime("%Y-%m-%d %H:%M:%S", localtime()),
             'A privileged user is already logged in, try in the next cycle.')
         p.sendline('exit')
         p.close()
@@ -116,11 +115,11 @@ def main():
     for device in rogue_devices:
         if device['SSID'] in valid_SSID :
             rogue_device_detected = 1
-            print(strftime("%Y-%m-%d %H:%M:%S", localtime()), 'Rogue device detected, mailing')
+            print(colored(strftime("%Y-%m-%d %H:%M:%S", localtime()) + ' Rogue device detected, mailing','red',attrs = ['bold']))
             try:
                 mailing(device)
             except smtplib.SMTPException:
-                print(strftime("%Y-%m-%d %H:%M:%S", localtime()), 'Mailing failed !!!!!!')
+                print(colored(strftime("%Y-%m-%d %H:%M:%S", localtime())+ ' Mailing failed !!!!!!','red',attrs = ['bold']))
     
     p.sendline('exit')
     p.close()
@@ -128,7 +127,7 @@ def main():
 
 
 if __name__ == '__main__':
-    
+            
     _time = int(raw_input('Please Enter the interval(minute) between cycles: '))
 
     server = smtplib.SMTP('smtp.gmail.com:587')
@@ -176,7 +175,7 @@ if __name__ == '__main__':
         if  rogue_device_detected == 0:
             print(strftime("%Y-%m-%d %H:%M:%S", localtime()),'Finish scanning, no rogue device detected')
         else:
-            print(strftime("%Y-%m-%d %H:%M:%S", localtime()),'Finish scanning, some rogue devices detected!!!')
+            print(colored(strftime("%Y-%m-%d %H:%M:%S", localtime())+' Finish scanning, some rogue devices detected!!!','red',attrs = ['bold']))
     
     server.quit()
     print(datetime.datetime.now().isoformat(), 'End')
