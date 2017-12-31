@@ -6,6 +6,11 @@
 ./user_location USERNAME
 ```
 
+## Finished
+* Show the queried user's location.
+
+* Show the queried user's device OS type & hostname.
+
 ## Reference
 ### Code
 * `../reference/collect.py`
