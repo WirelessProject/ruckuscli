@@ -138,7 +138,7 @@ if __name__ == '__main__':
         try:
             log_in_account = raw_input('Please login: ')     # username
             log_in_password = getpass.getpass('Password: ')  # Password
-            p = pexpect.spawn('ssh wifi.csie.ntu.edu.tw')
+            p = pexpect.spawn('ssh 10.3.7.253')
             p.expect('Please login:')
             p.sendline(log_in_account)  # Usename
             p.sendline(log_in_password)  # Password

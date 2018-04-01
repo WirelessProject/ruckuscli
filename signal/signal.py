@@ -15,7 +15,7 @@ def sort_user(elem):
     return elem['Signal']    
 
 def main():
-    p = pexpect.spawn('ssh wifi.csie.ntu.edu.tw')
+    p = pexpect.spawn('ssh 10.3.7.253')
     p.expect('Please login:')
     p.sendline(input('Please login: '))  # Usename
     p.sendline(getpass.getpass('Password: '))  # Password

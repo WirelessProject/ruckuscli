@@ -10,7 +10,7 @@ import sys
 wlan_list = ['csie', 'csie-5G']	# the wlans to scan through
 
 def main():
-	p = pexpect.spawn('ssh wifi.csie.ntu.edu.tw')
+	p = pexpect.spawn('ssh 10.3.7.253')
 
 	while True:
 		p.expect('Please login:')
